@@ -8,6 +8,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import validator.contract.TokenParser;
+import validator.contract.TokenValidator;
+import validator.exceptions.InvalidPublicKeyURL;
 import validator.service.AuthJwtService;
 
 @Configuration
@@ -19,9 +22,21 @@ public class AuthValidatorAutoConfiguration {
 	 AuthJwtService authJwtService(JwtProperties properties) throws MalformedURLException {
 		 try {
 		        AuthKeyResolver resolver = new AuthKeyResolver(properties);
-		        return new AuthJwtService(resolver.getJwtProcessor());
+		        return new AuthJwtService(resolver.getJwtProcessor()) ;
 		    } catch (MalformedURLException e) {
-		        throw new IllegalStateException("Invalid JWKS URL in jwt-val properties", e);
+		        throw new InvalidPublicKeyURL("Invalid JWKS URL in jwt-val properties", e) ;
 		    }
+	 }
+	 
+	 @Bean
+	 @ConditionalOnMissingBean(TokenParser.class)
+	 TokenParser tokenParser(AuthJwtService authJwtService) {
+		 return authJwtService ;
+	 }
+	 
+	 @Bean
+	 @ConditionalOnMissingBean(TokenValidator.class)
+	 TokenValidator tokenValidator(AuthJwtService authJwtService) {
+		 return authJwtService ;
 	 }
 }

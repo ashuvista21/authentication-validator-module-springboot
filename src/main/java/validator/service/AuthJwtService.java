@@ -10,6 +10,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
 import validator.exceptions.ExpiredJwtException;
 import validator.exceptions.InvalidJwtException;
+import validator.exceptions.InvalidSignatureException;
 import validator.exceptions.JwtValidationException;
 import validator.contract.TokenParser;
 import validator.contract.TokenValidator;
@@ -41,20 +42,19 @@ public class AuthJwtService implements TokenParser, TokenValidator {
     @Override
     public boolean validateTokenSignature(String token) {
     	try {
-            jwtProcessor.process(SignedJWT.parse(token), null);
-            return true;
+            jwtProcessor.process(SignedJWT.parse(token), null) ;
+            return true ;
         } catch (Exception e) {
-            //throw new InvalidJwtException("JWT signature validation failed", e);
-        	return false ;
+            throw new InvalidSignatureException("JWT signature validation failed", e) ;
         }
     }
     
     private boolean isExpired(JWTClaimsSet claims) {
-        return claims.getExpirationTime() != null && claims.getExpirationTime().before(new Date());
+        return claims.getExpirationTime() != null && claims.getExpirationTime().before(new Date()) ;
     }
 
     private boolean isNotYetValid(JWTClaimsSet claims) {
-        return claims.getNotBeforeTime() != null && claims.getNotBeforeTime().after(new Date());
+        return claims.getNotBeforeTime() != null && claims.getNotBeforeTime().after(new Date()) ;
     }
 
     /**
@@ -87,7 +87,7 @@ public class AuthJwtService implements TokenParser, TokenValidator {
      */
     @Override
     public String extractUsername(String token) {
-        return extractClaim(token, JWTClaimsSet::getSubject);
+        return extractClaim(token, JWTClaimsSet::getSubject) ;
     }
 
     /**
@@ -95,17 +95,17 @@ public class AuthJwtService implements TokenParser, TokenValidator {
      */
     private JWTClaimsSet extractAllClaims(String token) {
     	try {
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            return jwtProcessor.process(signedJWT, null);
+            SignedJWT signedJWT = SignedJWT.parse(token) ;
+            return jwtProcessor.process(signedJWT, null) ;
         } catch (Exception e) {
-            throw new InvalidJwtException("Failed to extract claims from JWT", e);
+            throw new InvalidJwtException("Failed to extract claims from JWT", e) ;
         }
     }
 
 	@Override
 	public boolean validateTokenMetadata(String token) {
 		// TODO Auto-generated method stub
-		return false;
+		return false ;
 	}
 
 }
