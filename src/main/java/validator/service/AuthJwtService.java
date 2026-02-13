@@ -3,6 +3,8 @@ package validator.service;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -12,15 +14,19 @@ import validator.exceptions.ExpiredJwtException;
 import validator.exceptions.InvalidJwtException;
 import validator.exceptions.InvalidSignatureException;
 import validator.exceptions.JwtValidationException;
+import validator.contract.IntrospectionPort;
+import validator.contract.IntrospectionResponse;
 import validator.contract.TokenParser;
 import validator.contract.TokenValidator;
 
 public class AuthJwtService implements TokenParser, TokenValidator {
 	
-	private final DefaultJWTProcessor<SecurityContext> jwtProcessor;
+	private final DefaultJWTProcessor<SecurityContext> jwtProcessor ;
+	private final IntrospectionPort introspectionPort ;
 
-    public AuthJwtService(DefaultJWTProcessor<SecurityContext> jwtProcessor) {
-        this.jwtProcessor = jwtProcessor;
+    public AuthJwtService(DefaultJWTProcessor<SecurityContext> jwtProcessor, @Autowired(required = false) IntrospectionPort introspectionPort) {
+        this.jwtProcessor = jwtProcessor ;
+        this.introspectionPort = introspectionPort ;
     }
 
     /**
@@ -103,9 +109,15 @@ public class AuthJwtService implements TokenParser, TokenValidator {
     }
 
 	@Override
-	public boolean validateTokenMetadata(String token) {
-		// TODO Auto-generated method stub
-		return false ;
+	public boolean introspectToken(String token) {
+		boolean valid = isTokenValid(token) ;
+		
+		if (introspectionPort == null) {
+	        return valid ; // stateless mode
+	    }
+		
+		IntrospectionResponse response = introspectionPort.introspect(token) ;
+		return valid && response.isActive() ;
 	}
 
 }
