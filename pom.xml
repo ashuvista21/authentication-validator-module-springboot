@@ -10,7 +10,7 @@
 	<description>Authentication validator</description>
 
 	<properties>
-		<java.version>23</java.version> <!-- you are on Java 23 -->
+		<java.version>21</java.version> <!-- you are on Java 23 -->
 		<spring.boot.version>3.3.4</spring.boot.version> <!-- latest stable -->
 	</properties>
 
